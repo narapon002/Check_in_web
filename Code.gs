@@ -12,7 +12,7 @@
  */
 
 const TZ = 'Asia/Bangkok';
-const VERSION = '1.2.0';
+const VERSION = '1.2.2';
 const EMP = { name: 'Employees', head: ['code', 'name', 'dept'] };
 const ATT = {
   name: 'Attendance',

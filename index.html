@@ -139,6 +139,9 @@ tbody tr:hover{background:#f3f6fa}
 .alert{background:#f8e8e8;color:#8a2f33}
 .info{background:#e8f0f8;color:#2c4a6e}
 #sigCanvas{border:1px dashed #b8c2cf;background:#fff}
+.welcome{text-align:center;padding:26px 20px}
+.welcome h2{font-size:26px;margin:0 0 6px;color:#3f5f8a}
+.welcome p{margin:0;color:#6b7480}
 </style>
 </head>
 <body>
@@ -155,6 +158,10 @@ tbody tr:hover{background:#f3f6fa}
 
 <main>
   <div id="msg" class="hidden"></div>
+  <div class="card welcome" id="welcome">
+    <h2>👋 ยินดีต้อนรับ</h2>
+    <p>สู่ระบบเช็คชื่อพนักงาน กรุณาเข้าสู่ระบบเพื่อบันทึกเวลาเข้า-ออกงาน</p>
+  </div>
   <div id="loading" class="card muted">กำลังโหลดข้อมูล…</div>
   <div id="noDb" class="alert hidden"></div>
 
@@ -302,7 +309,7 @@ tbody tr:hover{background:#f3f6fa}
 const API_URL = 'ใส่ URL ของ Web App จาก Apps Script ที่นี่';
 /* ================================================================== */
 
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.2.2';
 const KEY = 'attendance_profile_v1';
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -394,6 +401,7 @@ function render(){
   $('#loading').classList.toggle('hidden', S.loaded);
   if (!S.loaded) return;
   const role = S.profile && S.profile.role;
+  $('#welcome').classList.toggle('hidden', !!role);
   $('#setup').classList.toggle('hidden', !!role);
   $('#employeeView').classList.toggle('hidden', role !== 'employee');
   $('#supervisorView').classList.toggle('hidden', role !== 'supervisor');
