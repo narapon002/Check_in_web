@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เว็บเช็คชื่อพนักงาน</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e3e7f0;--brand:#2563eb;--ok:#16a34a;--bad:#dc2626;}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Sarabun","Noto Sans Thai",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--brand);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+.ver{font-size:12px;opacity:.85;margin-top:3px}
+main{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:17px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+button{font:inherit;border:0;border-radius:10px;padding:10px 16px;cursor:pointer;background:var(--brand);color:#fff}
+button.secondary{background:#e8edf7;color:var(--ink)}
+button.ok{background:var(--ok)}
+button.danger{background:var(--bad)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.big{font-size:20px;padding:22px;width:100%}
+input,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;width:100%;background:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{background:#e8edf7;color:var(--ink)}
+.tabs button.active{background:var(--brand);color:#fff}
+.clock{font-size:42px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted);font-size:13px}
+.red{color:#dc2626;font-weight:700}
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;margin:1px 0}
+.b-ok{background:#dcfce7;color:#166534}.b-late{background:#fef3c7;color:#92400e}.b-wait{background:#e5e7eb;color:#374151}.b-bad{background:#fee2e2;color:#991b1b}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{background:#f8fafc;font-size:13px;color:var(--muted)}
+.hidden{display:none !important}
+.alert{background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px;margin-bottom:12px}
+.info{background:#e0ecff;color:#1e3a8a;padding:12px;border-radius:10px;margin-bottom:12px}
+textarea{width:100%;min-height:120px;font:13px ui-monospace,monospace;padding:10px;border:1px solid var(--line);border-radius:10px}
+.sigImg{height:36px;border:1px solid var(--line);border-radius:6px;background:#fff;vertical-align:middle}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal-box{background:#fff;border-radius:14px;padding:18px;max-width:520px;width:100%}
+#sigCanvas{width:100%;height:180px;border:1px dashed #94a3b8;border-radius:10px;touch-action:none;background:#fff;display:block;margin:10px 0}
+.chart-wrap{overflow-x:auto}
+@media(max-width:600px){.clock{font-size:34px}header h1{font-size:16px}}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== ธีมพาสเทล น่ารัก อ่านง่าย (v1.2.0) ===== */
+:root{--bg:#fff7fb;--card:#fff;--ink:#3b3355;--muted:#8a7fa6;--line:#f3e8f7;--brand:#8b5cf6;--ok:#22c55e;--bad:#fb7185;}
+body{font-family:"Mali","Sarabun","Noto Sans Thai",system-ui,sans-serif;min-height:100vh;
+  background:radial-gradient(circle at 8% 0%,#ffe4f1 0,transparent 38%),radial-gradient(circle at 92% 6%,#dbeafe 0,transparent 36%),linear-gradient(180deg,#fff7fb,#f5f3ff);background-attachment:fixed}
+header{background:linear-gradient(120deg,#a78bfa,#f472b6 55%,#fbbf24);border-radius:0 0 26px 26px;box-shadow:0 8px 24px rgba(167,139,250,.35);padding:18px 22px}
+header h1{font-size:22px;text-shadow:0 2px 0 rgba(0,0,0,.08)}
+.ver{display:inline-block;background:rgba(255,255,255,.3);padding:2px 10px;border-radius:999px;margin-top:6px;opacity:1;font-weight:600}
+#who{color:#fff !important;background:rgba(255,255,255,.25);padding:6px 12px;border-radius:999px;font-weight:600}
+#who:empty{display:none}
+main{padding:22px 16px}
+.card{border:0;border-radius:22px;box-shadow:0 6px 22px rgba(139,92,246,.09);padding:20px}
+.card h2{font-size:19px;color:#6d28d9}
+button{border-radius:999px;font-weight:600;background:linear-gradient(135deg,#8b5cf6,#a78bfa);box-shadow:0 4px 0 rgba(0,0,0,.08);transition:transform .12s,box-shadow .12s,filter .12s}
+button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+button.ok{background:linear-gradient(135deg,#34d399,#22c55e)}
+button.danger{background:linear-gradient(135deg,#fb7185,#f43f5e)}
+button.secondary{background:#f3e8ff;color:#6d28d9;box-shadow:none}
+header button.secondary{background:#fff;color:#be185d}
+button.big{border-radius:26px;font-size:22px;padding:28px;box-shadow:0 8px 0 rgba(0,0,0,.1)}
+input,select,textarea{border:2px solid #ede4fb !important;border-radius:14px !important;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#c4b5fd !important;box-shadow:0 0 0 4px #ede9fe}
+.tabs{background:#fff;padding:8px;border-radius:22px;box-shadow:0 4px 16px rgba(139,92,246,.08);gap:8px}
+.tabs button{background:transparent;color:#7c6f9a;box-shadow:none}
+.tabs button.active{background:linear-gradient(135deg,#f472b6,#a78bfa);color:#fff}
+.tabs [data-tab="today"]::before{content:"✅ "}
+.tabs [data-tab="emp"]::before{content:"👥 "}
+.tabs [data-tab="sum"]::before{content:"📊 "}
+#setupFirst,#setupNormal .card:first-child{background:linear-gradient(135deg,#ede9fe,#fff 70%)}
+#setupNormal .card:last-child{background:linear-gradient(135deg,#fce7f3,#fff 70%)}
+#setupFirst h2::before{content:"🌟 "}
+#setupNormal .card:first-child h2::before{content:"👑 "}
+#setupNormal .card:last-child h2::before{content:"🙋 "}
+#employeeView .card:first-child{background:linear-gradient(135deg,#fdf2f8,#ede9fe)}
+.clock{font-size:54px;background:linear-gradient(135deg,#8b5cf6,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+.badge{padding:4px 12px;font-size:12.5px}
+.b-ok{background:#d1fae5;color:#047857}.b-late{background:#ffedd5;color:#c2410c}
+.b-wait{background:#ede9fe;color:#6d28d9}.b-bad{background:#ffe4e6;color:#be123c}
+.b-ok::before{content:"😊 "}.b-late::before{content:"⏰ "}.b-wait::before{content:"⏳ "}.b-bad::before{content:"💤 "}
+.table-wrap{border-radius:16px;border:2px solid #f3e8ff}
+th{background:#faf5ff;color:#7c3aed;font-weight:600}
+td{border-bottom:1px solid #f5edfa}
+tbody tr:nth-child(even){background:#fffafd}
+tbody tr:hover{background:#fdf2f8}
+.red{color:#e11d48}
+.alert{border-radius:16px;background:#ffe4e6;color:#9f1239}
+.info{border-radius:16px;background:#ecfdf5;color:#065f46}
+#msg{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:20;max-width:92%;box-shadow:0 10px 30px rgba(0,0,0,.15);font-weight:600}
+.modal{background:rgba(59,51,85,.45)}
+.modal-box{border-radius:24px}
+#sigCanvas{border:2px dashed #c4b5fd;border-radius:16px;background:#fffbfe}
+@media(max-width:600px){.clock{font-size:42px}header h1{font-size:18px}button.big{font-size:20px;padding:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📋 เว็บเช็คชื่อพนักงาน</h1>
+    <div class="ver" id="verLabel"></div>
+  </div>
+  <div class="row">
+    <span id="who" class="muted" style="color:#dbeafe"></span>
+    <button class="secondary hidden" id="btnLogout">ออกจากระบบ</button>
+  </div>
+</header>
+
+<main>
+  <div id="msg" class="hidden"></div>
+  <div id="loading" class="card muted">กำลังโหลดข้อมูล…</div>
+  <div id="noDb" class="alert hidden"></div>
+
+  <!-- หน้าเข้าสู่ระบบ -->
+  <section id="setup" class="hidden">
+    <div class="card hidden" id="setupFirst">
+      <h2>ตั้งค่าครั้งแรก</h2>
+      <p class="muted">ยังไม่มีหัวหน้างานในระบบ คุณจะเป็นหัวหน้างานคนแรก กรุณาตั้งรหัส PIN (ตัวเลข 4–8 หลัก)</p>
+      <div class="row"><input id="firstPin" type="password" inputmode="numeric" placeholder="ตั้ง PIN หัวหน้างาน" style="max-width:260px"><button id="btnFirstSup">เริ่มใช้งานเป็นหัวหน้า</button></div>
+    </div>
+    <div class="grid" id="setupNormal">
+      <div class="card">
+        <h2>เข้าสู่ระบบ: หัวหน้างาน</h2>
+        <div class="row"><input id="supPin" type="password" inputmode="numeric" placeholder="PIN หัวหน้างาน"><button id="btnSupLogin">เข้าสู่ระบบ</button></div>
+      </div>
+      <div class="card">
+        <h2>เข้าสู่ระบบ: พนักงาน</h2>
+        <select id="empSelect"></select>
+        <div style="margin-top:10px"><button id="btnEmpLogin">เข้าสู่ระบบ</button></div>
+        <p class="muted">เลือกชื่อของคุณจากรายชื่อพนักงาน (หัวหน้างานต้องเพิ่มรายชื่อก่อน)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- มุมมองพนักงาน -->
+  <section id="employeeView" class="hidden">
+    <div class="card" style="text-align:center">
+      <div class="muted">เวลาปัจจุบัน</div>
+      <div class="clock clockTxt"></div>
+      <div class="muted" id="empName" style="margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <h2>วันนี้</h2>
+      <div id="empStatus" style="margin-bottom:12px"></div>
+      <div class="grid">
+        <button class="big ok" id="btnCheckIn">✅ กดเข้างาน</button>
+        <button class="big danger" id="btnCheckOut">🚪 กดออกงาน</button>
+      </div>
+      <p class="muted">เวลาเข้างาน 08:00 น. · เลิกงาน 17:00 น. · เข้างานหลัง 08:00 น. ถือว่าสาย</p>
+    </div>
+    <div class="card">
+      <h2>ประวัติการเข้างาน (31 วันล่าสุด)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่</th><th>เข้า</th><th>ออก</th><th>สถานะ</th><th>ยืนยัน</th></tr></thead>
+        <tbody id="empHist"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- มุมมองหัวหน้างาน -->
+  <section id="supervisorView" class="hidden">
+    <div class="tabs">
+      <button data-tab="today" class="active">ยืนยันการเข้างาน</button>
+      <button data-tab="emp">รายชื่อพนักงาน</button>
+      <button data-tab="sum">สรุปรายเดือน</button>
+    </div>
+
+    <div id="tab-today">
+      <div class="card">
+        <h2 id="todayLabel"></h2>
+        <div class="row" style="margin-bottom:10px">
+          <button class="ok" data-act="confirmAll">ยืนยันทั้งหมดที่รอ (ไม่มีลายเซ็น)</button>
+          <span class="muted" id="todayCount"></span>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>รหัส</th><th>ชื่อ</th><th>แผนก</th><th>เข้างาน</th><th>สถานะ</th><th>ออกงาน</th><th>การอนุมัติ</th></tr></thead>
+          <tbody id="todayBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div id="tab-emp" class="hidden">
+      <div class="card">
+        <h2>เพิ่มพนักงานผ่านเว็บ</h2>
+        <div class="grid">
+          <input id="addCode" placeholder="รหัสพนักงาน">
+          <input id="addName" placeholder="ชื่อ-นามสกุล">
+          <input id="addDept" placeholder="แผนก">
+        </div>
+        <div style="margin-top:10px"><button id="btnAddEmp">เพิ่มพนักงาน</button></div>
+      </div>
+      <div class="card">
+        <h2>อัปโหลดรายชื่อ (CSV / Excel)</h2>
+        <p class="muted">คอลัมน์: รหัส, ชื่อ-นามสกุล, แผนก (แถวแรกเป็นหัวคอลัมน์ก็ได้) รหัสซ้ำจะถูกอัปเดตข้อมูล</p>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+        <div id="previewBox" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h2>รายชื่อพนักงานทั้งหมด</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>รหัส</th><th>ชื่อ</th><th>แผนก</th><th></th></tr></thead>
+          <tbody id="empBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div id="tab-sum" class="hidden">
+      <div class="card">
+        <div class="row" style="margin-bottom:10px">
+          <label>เดือน <input type="month" id="monthPick" style="width:auto"></label>
+        </div>
+        <h2>สรุปตามรายชื่อ</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>แผนก</th><th>วันที่เข้างาน</th><th>ครั้งที่สาย</th><th>เวลาสายรวม (นาที)</th><th>ออกก่อนเวลา</th><th>ยืนยันแล้ว</th></tr></thead>
+          <tbody id="sumBody"></tbody>
+        </table></div>
+
+        <h2 style="margin-top:18px">กราฟเปรียบเทียบเวลาทำงานกับเวลาที่มาสาย</h2>
+        <p class="muted">เวลาทำงานตามกำหนด = จำนวนวันที่เข้างาน × 9 ชั่วโมง (08:00–17:00) เทียบกับเวลาที่มาสายรวมของแต่ละคนในเดือนนั้น</p>
+        <div class="chart-wrap" id="chartBox"></div>
+
+        <h2 style="margin-top:18px">รายละเอียดเวลาเข้า-ออกงาน</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>วันที่</th><th>รหัส</th><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>สถานะ</th><th>อนุมัติ</th></tr></thead>
+          <tbody id="detailBody"></tbody>
+        </table></div>
+
+        <h2 style="margin-top:18px">ข้อมูลสำหรับ Google Sheets</h2>
+        <p class="muted">กดคัดลอก แล้ววางใน Google Sheets ได้เลย</p>
+        <button class="secondary" id="btnCopy">คัดลอก CSV</button>
+        <textarea id="csvBox" style="margin-top:8px" readonly></textarea>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- หน้าต่างลงลายเซ็นอนุมัติ (ทางเลือก) -->
+<div id="sigModal" class="modal hidden">
+  <div class="modal-box">
+    <h2 style="margin:0 0 4px;font-size:17px">อนุมัติการเข้างาน</h2>
+    <p class="muted" id="sigName"></p>
+    <canvas id="sigCanvas"></canvas>
+    <p class="muted">ลายเซ็นเป็นทางเลือก ลากเมาส์หรือนิ้วบนกรอบเพื่อเซ็นชื่อ</p>
+    <div class="row">
+      <button class="secondary" data-act="sigClear">ล้างลายเซ็น</button>
+      <button class="secondary" data-act="sigCancel">ยกเลิก</button>
+      <button class="ok" data-act="sigNo">ยืนยันโดยไม่มีลายเซ็น</button>
+      <button data-act="sigYes">ยืนยันพร้อมลายเซ็น</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======== ตั้งค่า: วาง URL ของ Web App จาก Google Apps Script ที่นี่ ======== */
+const API_URL = 'ใส่ URL ของ Web App จาก Apps Script ที่นี่';
+/* ================================================================== */
+
+const APP_VERSION = '1.2.0';
+const KEY = 'attendance_profile_v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const todayKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const safeId = s => String(s ?? '').trim().replace(/[^A-Za-z0-9_-]/g, '_');
+const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}) : '-';
+const atTime = (iso, h, m) => { const d = new Date(iso); d.setHours(h, m, 0, 0); return d; };
+const lateMin = iso => { if (!iso) return 0; const d = new Date(iso); const s = atTime(iso, 8, 0); return d > s ? Math.round((d - s) / 60000) : 0; };
+const isEarly = iso => !!iso && new Date(iso) < atTime(iso, 17, 0);
+const byName = (a, b) => a[1].name.localeCompare(b[1].name, 'th');
+const sigOk = s => typeof s === 'string' && s.startsWith('data:image/png');
+
+const S = { emps:new Map(), att:new Map(), pinSet:false, loaded:false, profile:null, tab:'today', armed:null, pending:[], sigFor:null, lastEmpSel:'' };
+
+async function sha(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ---------- การเชื่อมต่อ API ---------- */
+function apiReady(){ return !!API_URL && !API_URL.startsWith('ใส่'); }
+
+async function api(action, payload = {}){
+  if (!apiReady()) throw new Error('ยังไม่ได้ตั้งค่า API_URL ในไฟล์ index.html');
+  // ใช้ text/plain เพื่อหลีกเลี่ยงการ preflight ของ CORS กับ Apps Script
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify({action, ...payload})
+  });
+  let j;
+  try { j = await res.json(); }
+  catch (e) { throw new Error('ตอบกลับไม่ใช่ข้อมูล JSON ตรวจสอบว่า Web app ตั้ง Who has access เป็น Anyone และ URL ถูกต้อง'); }
+  if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด');
+  return j.data;
+}
+
+async function refresh(){
+  try {
+    const d = await api('getAll');
+    S.emps = new Map(d.employees.map(e => [e.id, e]));
+    S.att = new Map(d.attendance.map(r => [r.docId, r]));
+    S.pinSet = d.pinSet;
+    S.loaded = true;
+    render();
+  } catch (e) {
+    msg('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'err');
+    if (!S.loaded) $('#loading').textContent = 'โหลดข้อมูลไม่สำเร็จ ตรวจสอบ API_URL และการเผยแพร่ Apps Script';
+  }
+}
+
+function msg(text, kind = 'info'){
+  const el = $('#msg');
+  el.className = kind === 'err' ? 'alert' : 'info';
+  el.textContent = text;
+  clearTimeout(msg.t);
+  msg.t = setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+function saveProfile(p){
+  S.profile = p;
+  if (p) localStorage.setItem(KEY, JSON.stringify(p));
+  else localStorage.removeItem(KEY);
+  render();
+}
+
+function tick(){
+  document.querySelectorAll('.clockTxt').forEach(el => el.textContent = new Date().toLocaleTimeString('th-TH'));
+}
+
+function init(){
+  try { S.profile = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { S.profile = null; }
+  $('#monthPick').value = todayKey().slice(0, 7);
+  $('#verLabel').textContent = 'เวอร์ชัน ' + APP_VERSION;
+  if (!apiReady()) {
+    $('#loading').classList.add('hidden');
+    $('#noDb').classList.remove('hidden');
+    $('#noDb').textContent = 'ยังไม่ได้ตั้งค่า API_URL ในไฟล์ index.html กรุณาวาง URL ของ Web App จาก Google Apps Script';
+    return;
+  }
+  refresh();
+  setInterval(refresh, 15000);
+  setInterval(tick, 1000);
+  tick();
+}
+
+function render(){
+  $('#loading').classList.toggle('hidden', S.loaded);
+  if (!S.loaded) return;
+  const role = S.profile && S.profile.role;
+  $('#setup').classList.toggle('hidden', !!role);
+  $('#employeeView').classList.toggle('hidden', role !== 'employee');
+  $('#supervisorView').classList.toggle('hidden', role !== 'supervisor');
+  $('#btnLogout').classList.toggle('hidden', !role);
+  $('#who').textContent = role === 'supervisor' ? 'ลงชื่อเข้าใช้ในฐานะ: หัวหน้างาน' : role === 'employee' ? 'ลงชื่อเข้าใช้ในฐานะ: พนักงาน' : '';
+  if (!role) renderSetup();
+  if (role === 'employee') renderEmployee();
+  if (role === 'supervisor') renderSupervisor();
+}
+
+/* ---------- หน้าเข้าสู่ระบบ ---------- */
+function renderSetup(){
+  $('#setupFirst').classList.toggle('hidden', S.pinSet);
+  $('#setupNormal').classList.toggle('hidden', !S.pinSet);
+  const html = '<option value="">— เลือกชื่อของคุณ —</option>' +
+    [...S.emps].sort(byName).map(([id, e]) => `<option value="${esc(id)}">${esc(e.code)} · ${esc(e.name)}</option>`).join('');
+  if (html !== S.lastEmpSel) {  // อัปเดตเฉพาะเมื่อรายชื่อเปลี่ยน เพื่อไม่ให้ตัวเลือกที่เลือกไว้หาย
+    $('#empSelect').innerHTML = html;
+    S.lastEmpSel = html;
+  }
+}
+
+/* ---------- พนักงาน ---------- */
+function statusBadge(r){
+  if (!r || !r.checkIn) return '<span class="badge b-bad">ยังไม่เข้างาน</span>';
+  const late = lateMin(r.checkIn);
+  let h = late > 0 ? `<span class="badge b-late">สาย ${late} นาที</span>` : '<span class="badge b-ok">ตรงเวลา</span>';
+  if (r.checkOut && isEarly(r.checkOut)) h += ' <span class="badge b-late">ออกก่อนเวลา</span>';
+  return h;
+}
+
+function renderEmployee(){
+  const id = S.profile.code;
+  const emp = S.emps.get(id);
+  if (!emp) {
+    $('#empName').textContent = 'ไม่พบรายชื่อของคุณในระบบ กรุณาออกจากระบบแล้วเลือกชื่อใหม่';
+    $('#btnCheckIn').disabled = true;
+    $('#btnCheckOut').disabled = true;
+    $('#empHist').innerHTML = '';
+    $('#empStatus').innerHTML = '';
+    return;
+  }
+  $('#empName').textContent = `${emp.name} · รหัส ${emp.code}${emp.dept ? ' · ' + emp.dept : ''}`;
+  const rec = S.att.get(`${todayKey()}_${id}`);
+  $('#empStatus').innerHTML = (!rec || !rec.checkIn)
+    ? '<span class="badge b-wait">ยังไม่ได้เข้างานวันนี้</span>'
+    : `เข้างาน <b>${fmtTime(rec.checkIn)}</b> ${statusBadge(rec)} ${rec.checkOut ? ' · ออกงาน <b>' + fmtTime(rec.checkOut) + '</b>' : ''}<br>` +
+      (rec.confirmed ? '<span class="badge b-ok">หัวหน้ายืนยันแล้ว</span>' : '<span class="badge b-wait">รอหัวหน้ายืนยัน</span>');
+  $('#btnCheckIn').disabled = !!(rec && rec.checkIn);
+  $('#btnCheckOut').disabled = !(rec && rec.checkIn) || !!(rec && rec.checkOut);
+  const mine = [...S.att.values()].filter(r => r.empId === id).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 31);
+  $('#empHist').innerHTML = mine.map(r => `<tr><td>${esc(r.date)}</td><td>${fmtTime(r.checkIn)}</td><td>${fmtTime(r.checkOut)}</td><td>${statusBadge(r)}</td><td>${r.confirmed ? '✔' : '–'}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="muted">ยังไม่มีประวัติ</td></tr>';
+}
+
+async function checkIn(){
+  try {
+    await api('checkIn', {empId: S.profile.code, date: todayKey()});
+    msg('บันทึกเวลาเข้างานแล้ว');
+    await refresh();
+  } catch (e) { msg('บันทึกไม่สำเร็จ: ' + e.message, 'err'); }
+}
+
+async function checkOut(){
+  try {
+    await api('checkOut', {docId: `${todayKey()}_${S.profile.code}`});
+    msg('บันทึกเวลาออกงานแล้ว');
+    await refresh();
+  } catch (e) { msg('บันทึกไม่สำเร็จ: ' + e.message, 'err'); }
+}
+
+/* ---------- ลายเซ็นอนุมัติ (ทางเลือก) ---------- */
+const cv = $('#sigCanvas');
+const sig = { drawing:false, ink:false, last:null };
+
+function sigSetup(){
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  cv.width = Math.max(1, Math.round(r.width * dpr));
+  cv.height = Math.max(1, Math.round(r.height * dpr));
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1d2433';
+  sig.ink = false;
+}
+
+const sigPos = e => { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+cv.addEventListener('pointerdown', e => { sig.drawing = true; sig.last = sigPos(e); cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+cv.addEventListener('pointermove', e => {
+  if (!sig.drawing) return;
+  const p = sigPos(e), ctx = cv.getContext('2d');
+  ctx.beginPath(); ctx.moveTo(sig.last.x, sig.last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+  sig.last = p; sig.ink = true; e.preventDefault();
+});
+const sigEnd = () => { sig.drawing = false; };
+cv.addEventListener('pointerup', sigEnd);
+cv.addEventListener('pointercancel', sigEnd);
+
+function openSig(docId){
+  const r = S.att.get(docId);
+  if (!r) return;
+  S.sigFor = docId;
+  $('#sigName').textContent = `${r.name} · รหัส ${r.code} · เข้างาน ${fmtTime(r.checkIn)}`;
+  $('#sigModal').classList.remove('hidden');
+  sigSetup();
+}
+
+function closeSig(){
+  $('#sigModal').classList.add('hidden');
+  S.sigFor = null;
+}
+
+async function finishConfirm(withSig){
+  const docId = S.sigFor;
+  if (!docId) return;
+  if (withSig && !sig.ink) return msg('ยังไม่ได้เซ็นชื่อ หากไม่ต้องการลายเซ็นให้กด "ยืนยันโดยไม่มีลายเซ็น"', 'err');
+  const signature = withSig ? cv.toDataURL('image/png') : '';
+  closeSig();
+  await api('confirm', {pinHash: S.profile.pinHash, docId, signature});
+  msg(signature ? 'ยืนยันการเข้างานพร้อมลายเซ็นแล้ว' : 'ยืนยันการเข้างานแล้ว');
+  await refresh();
+}
+
+/* ---------- หัวหน้างาน ---------- */
+function renderSupervisor(){
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === S.tab));
+  ['today', 'emp', 'sum'].forEach(t => $('#tab-' + t).classList.toggle('hidden', t !== S.tab));
+  if (S.tab === 'today') renderToday();
+  if (S.tab === 'emp') renderEmpList();
+  if (S.tab === 'sum') renderSummary();
+}
+
+function approvalCell(r, docId){
+  if (r && r.confirmed) {
+    const img = sigOk(r.signature) ? `<img class="sigImg" src="${r.signature}" alt="ลายเซ็น"> ` : '';
+    return `${img}<span class="badge b-ok">ยืนยันแล้ว${sigOk(r.signature) ? ' (มีลายเซ็น)' : ''}</span>`;
+  }
+  if (r && r.checkIn) return `<button class="ok" data-act="confirm" data-id="${esc(docId)}">ยืนยัน</button>`;
+  return '<span class="muted">–</span>';
+}
+
+function renderToday(){
+  const key = todayKey();
+  $('#todayLabel').textContent = 'วันที่ ' + new Date().toLocaleDateString('th-TH', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const list = [...S.emps].sort(byName);
+  let pending = 0, notIn = 0;
+  $('#todayBody').innerHTML = list.map(([id, e]) => {
+    const docId = `${key}_${id}`, r = S.att.get(docId);
+    const came = !!(r && r.checkIn);
+    if (!came) notIn++;
+    if (came && !r.confirmed) pending++;
+    return `<tr><td>${esc(e.code)}</td><td>${esc(e.name)}</td><td>${esc(e.dept || '')}</td>
+      <td>${came ? fmtTime(r.checkIn) : '-'}</td><td>${statusBadge(r)}</td>
+      <td>${r && r.checkOut ? fmtTime(r.checkOut) : '-'}</td><td>${approvalCell(r, docId)}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="muted">ยังไม่มีรายชื่อพนักงาน</td></tr>';
+  $('#todayCount').textContent = `รอยืนยัน ${pending} · ยังไม่เข้างาน ${notIn} · ทั้งหมด ${list.length} คน`;
+}
+
+function renderEmpList(){
+  $('#empBody').innerHTML = [...S.emps].sort(byName).map(([id, e]) =>
+    `<tr><td>${esc(e.code)}</td><td>${esc(e.name)}</td><td>${esc(e.dept || '')}</td>
+     <td><button class="danger" data-act="del" data-id="${esc(id)}">${S.armed === id ? 'กดอีกครั้งเพื่อลบ' : 'ลบ'}</button></td></tr>`
+  ).join('') || '<tr><td colspan="4" class="muted">ยังไม่มีพนักงาน</td></tr>';
+}
+
+async function delEmp(id){
+  if (S.armed !== id) {
+    S.armed = id;
+    renderEmpList();
+    setTimeout(() => { if (S.armed === id) { S.armed = null; renderEmpList(); } }, 4000);
+    return;
+  }
+  S.armed = null;
+  await api('deleteEmployee', {pinHash: S.profile.pinHash, id});
+  msg('ลบพนักงานแล้ว');
+  await refresh();
+}
+
+function parseCSV(text){
+  return text.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim()).map(line => {
+    const out = []; let cur = '', q = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { if (q && line[i+1] === '"') { cur += '"'; i++; } else q = !q; }
+      else if (c === ',' && !q) { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+    out.push(cur);
+    return out;
+  });
+}
+
+function toEmployees(rows){
+  if (!rows.length) return [];
+  const head = rows[0].map(h => String(h).trim());
+  const find = re => head.findIndex(h => re.test(h));
+  let ci = find(/รหัส|code|id/i), ni = find(/ชื่อ|name/i), di = find(/แผนก|dept|department/i);
+  let start = 1;
+  if (ci < 0 && ni < 0) { ci = 0; ni = 1; di = 2; start = 0; }
+  return rows.slice(start).map(r => ({
+    code: String(r[ci] ?? '').trim(),
+    name: String(r[ni] ?? '').trim(),
+    dept: di >= 0 ? String(r[di] ?? '').trim() : ''
+  })).filter(x => safeId(x.code) && x.name);
+}
+
+function loadXLSX(){
+  return new Promise((res, rej) => {
+    if (window.XLSX) return res();
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => res();
+    s.onerror = () => rej(new Error('โหลดตัวอ่าน Excel ไม่ได้ ใช้ไฟล์ CSV แทนได้'));
+    document.head.appendChild(s);
+  });
+}
+
+function renderPreview(){
+  const box = $('#previewBox');
+  if (!S.pending.length) { box.innerHTML = '<p class="muted">ไม่พบข้อมูลที่อ่านได้ (ต้องมีคอลัมน์รหัสและชื่อ)</p>'; return; }
+  box.innerHTML = `<p>พบ ${S.pending.length} รายการ</p>
+    <div class="table-wrap"><table><thead><tr><th>รหัส</th><th>ชื่อ</th><th>แผนก</th></tr></thead>
+    <tbody>${S.pending.slice(0, 10).map(p => `<tr><td>${esc(p.code)}</td><td>${esc(p.name)}</td><td>${esc(p.dept)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="muted">แสดง 10 รายการแรก</p>
+    <div style="margin-top:10px"><button data-act="import">บันทึกรายชื่อทั้งหมด</button></div>`;
+}
+
+async function importPending(){
+  const r = await api('importEmployees', {pinHash: S.profile.pinHash, rows: S.pending});
+  msg(`บันทึกรายชื่อแล้ว ${r.count} รายการ`);
+  S.pending = [];
+  $('#fileInput').value = '';
+  renderPreview();
+  await refresh();
+}
+
+function renderChart(lines){
+  const HOURS = 9;
+  const data = lines.map(x => ({label: x.name, std: x.days * HOURS, late: x.lateTotal / 60}));
+  if (!data.length) { $('#chartBox').innerHTML = '<p class="muted">ยังไม่มีข้อมูล</p>'; return; }
+  const max = Math.max(1, ...data.map(d => Math.max(d.std, d.late)));
+  const W = 640, left = 170, right = 60, top = 36, rowH = 50;
+  const bw = W - left - right;
+  const H = top + data.length * rowH + 10;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="กราฟเปรียบเทียบเวลาทำงานกับเวลาที่มาสาย">`;
+  s += `<rect x="${left}" y="8" width="14" height="14" rx="3" fill="#8b5cf6"/>`;
+  s += `<text x="${left + 20}" y="20" font-size="13" fill="#1d2433">เวลาทำงานตามกำหนด (ชม.)</text>`;
+  s += `<rect x="${left + 230}" y="8" width="14" height="14" rx="3" fill="#dc2626"/>`;
+  s += `<text x="${left + 250}" y="20" font-size="13" fill="#1d2433">เวลาที่มาสายรวม (ชม.)</text>`;
+  data.forEach((d, i) => {
+    const y = top + i * rowH;
+    const w1 = Math.max(2, d.std / max * bw), w2 = d.late > 0 ? Math.max(2, d.late / max * bw) : 0;
+    s += `<text x="${left - 10}" y="${y + 20}" font-size="12" text-anchor="end" fill="#1d2433">${esc(d.label)}</text>`;
+    s += `<rect x="${left}" y="${y}" width="${w1}" height="16" rx="3" fill="#8b5cf6"/>`;
+    s += `<text x="${left + w1 + 6}" y="${y + 12}" font-size="11" fill="#1d2433">${d.std.toFixed(1)}</text>`;
+    if (w2 > 0) s += `<rect x="${left}" y="${y + 20}" width="${w2}" height="16" rx="3" fill="#dc2626"/>`;
+    s += `<text x="${left + w2 + 6}" y="${y + 32}" font-size="11" fill="#dc2626">${d.late.toFixed(1)}</text>`;
+  });
+  s += '</svg>';
+  $('#chartBox').innerHTML = s;
+}
+
+function renderSummary(){
+  const m = $('#monthPick').value || todayKey().slice(0, 7);
+  const list = [...S.emps].sort(byName);
+  const recs = [...S.att.values()].filter(r => r.date && r.date.startsWith(m) && r.checkIn);
+
+  const lines = list.map(([id, e]) => {
+    const mine = recs.filter(r => r.empId === id);
+    const lates = mine.map(r => lateMin(r.checkIn));
+    return {
+      code: e.code, name: e.name, dept: e.dept || '',
+      days: mine.length,
+      lateCount: lates.filter(x => x > 0).length,
+      lateTotal: lates.reduce((a, b) => a + b, 0),
+      early: mine.filter(r => isEarly(r.checkOut)).length,
+      conf: mine.filter(r => r.confirmed).length
+    };
+  });
+
+  $('#sumBody').innerHTML = lines.map(x =>
+    `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.dept)}</td><td>${x.days}</td>
+     <td class="red">${x.lateCount}</td><td class="red">${x.lateTotal}</td><td>${x.early}</td><td>${x.conf}</td></tr>`
+  ).join('') || '<tr><td colspan="8" class="muted">ยังไม่มีข้อมูล</td></tr>';
+
+  renderChart(lines);
+
+  const detail = recs.slice().sort((a, b) => a.date.localeCompare(b.date) || String(a.name).localeCompare(String(b.name), 'th'));
+  $('#detailBody').innerHTML = detail.map(r =>
+    `<tr><td>${esc(r.date)}</td><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${fmtTime(r.checkIn)}</td><td>${fmtTime(r.checkOut)}</td><td>${statusBadge(r)}</td><td>${r.confirmed ? (sigOk(r.signature) ? 'ลงลายเซ็น' : 'ยืนยันแล้ว') : '–'}</td></tr>`
+  ).join('') || '<tr><td colspan="7" class="muted">ยังไม่มีข้อมูลในเดือนนี้</td></tr>';
+
+  const csvEsc = v => `"${String(v).replace(/"/g, '""')}"`;
+  const header = ['รหัส', 'ชื่อ-นามสกุล', 'แผนก', 'วันที่เข้างาน', 'จำนวนครั้งที่สาย', 'เวลาสายรวม(นาที)', 'ออกก่อนเวลา', 'ยืนยันแล้ว'];
+  $('#csvBox').value = [header, ...lines.map(x => [x.code, x.name, x.dept, x.days, x.lateCount, x.lateTotal, x.early, x.conf])]
+    .map(r => r.map(csvEsc).join(',')).join('\n');
+}
+
+async function copyCSV(){
+  try {
+    await navigator.clipboard.writeText($('#csvBox').value);
+    msg('คัดลอกแล้ว นำไปวางใน Google Sheets ได้เลย');
+  } catch (e) {
+    $('#csvBox').select();
+    msg('คัดลอกอัตโนมัติไม่ได้ กรุณากด Ctrl+C', 'err');
+  }
+}
+
+/* ---------- การผูกเหตุการณ์ ---------- */
+$('#btnFirstSup').onclick = async () => {
+  const pin = $('#firstPin').value.trim();
+  if (!/^\d{4,8}$/.test(pin)) return msg('PIN ต้องเป็นตัวเลข 4–8 หลัก', 'err');
+  try {
+    const pinHash = await sha(pin);
+    await api('setupPin', {pinHash});
+    saveProfile({role: 'supervisor', pinHash});
+    await refresh();
+  } catch (e) { msg('ตั้งค่าไม่สำเร็จ: ' + e.message, 'err'); }
+};
+
+$('#btnSupLogin').onclick = async () => {
+  const pinHash = await sha($('#supPin').value.trim());
+  try {
+    await api('verifyPin', {pinHash});
+    saveProfile({role: 'supervisor', pinHash});
+  } catch (e) { msg(e.message, 'err'); }
+};
+
+$('#btnEmpLogin').onclick = () => {
+  const id = $('#empSelect').value;
+  if (!id) return msg('กรุณาเลือกชื่อของคุณ', 'err');
+  saveProfile({role: 'employee', code: id});
+};
+
+$('#btnLogout').onclick = () => saveProfile(null);
+
+$('#btnCheckIn').onclick = checkIn;
+$('#btnCheckOut').onclick = checkOut;
+
+$('#btnAddEmp').onclick = async () => {
+  const code = $('#addCode').value, name = $('#addName').value, dept = $('#addDept').value;
+  if (!safeId(code) || !name.trim()) return msg('กรุณากรอกรหัสและชื่อ', 'err');
+  try {
+    await api('addEmployee', {pinHash: S.profile.pinHash, code, name, dept});
+    ['#addCode', '#addName', '#addDept'].forEach(s => $(s).value = '');
+    msg('เพิ่มพนักงานแล้ว');
+    await refresh();
+  } catch (e) { msg('เพิ่มไม่สำเร็จ: ' + e.message, 'err'); }
+};
+
+$('#fileInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    let rows;
+    if (/\.csv$/i.test(f.name)) {
+      rows = parseCSV(await f.text());
+    } else {
+      await loadXLSX();
+      const wb = XLSX.read(await f.arrayBuffer(), {type: 'array'});
+      rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
+    }
+    S.pending = toEmployees(rows);
+    renderPreview();
+  } catch (err) { msg('อ่านไฟล์ไม่สำเร็จ: ' + err.message, 'err'); }
+});
+
+$('#monthPick').addEventListener('change', renderSummary);
+$('#btnCopy').onclick = copyCSV;
+
+document.addEventListener('click', async e => {
+  const tab = e.target.closest('[data-tab]');
+  if (tab) { S.tab = tab.dataset.tab; render(); return; }
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'confirm') return openSig(b.dataset.id);
+  if (act === 'sigClear') return sigSetup();
+  if (act === 'sigCancel') return closeSig();
+  b.disabled = true;
+  try {
+    if (act === 'sigYes') await finishConfirm(true);
+    if (act === 'sigNo') await finishConfirm(false);
+    if (act === 'confirmAll') {
+      const r = await api('confirmAll', {pinHash: S.profile.pinHash, date: todayKey()});
+      msg(r.count ? `ยืนยันการเข้างานแล้ว ${r.count} รายการ (ไม่มีลายเซ็น)` : 'ไม่มีรายการที่รอยืนยัน');
+      await refresh();
+    }
+    if (act === 'del') await delEmp(b.dataset.id);
+    if (act === 'import') await importPending();
+  } catch (err) { msg('ทำรายการไม่สำเร็จ: ' + err.message, 'err'); }
+  finally { b.disabled = false; }
+});
+
+init();
+</script>
+</body>
+</html>
